@@ -21,10 +21,10 @@ func (t *RememberToken) Table() string {
 func (t *RememberToken) InsertToken(userID int, token string) error {
 	collection := upper.Collection(t.Table())
 	rememberToken := RememberToken{
-		UserID:        userID,
+		UserID: userID,
 		RememberToken: token,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 	_, err := collection.Insert(rememberToken)
 	if err != nil {

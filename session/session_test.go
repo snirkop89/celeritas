@@ -9,6 +9,7 @@ import (
 )
 
 func TestSession_InitSession(t *testing.T) {
+
 	c := &Session{
 		CookieLifetime: "100",
 		CookiePersist:  "true",
@@ -19,15 +20,15 @@ func TestSession_InitSession(t *testing.T) {
 
 	var sm *scs.SessionManager
 
-	sess := c.InitSession()
+	ses := c.InitSession()
 
 	var sessKind reflect.Kind
 	var sessType reflect.Type
 
-	rv := reflect.ValueOf(sess)
+	rv := reflect.ValueOf(ses)
 
 	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
-		fmt.Println("for loop:", rv.Kind(), rv.Type(), rv)
+		fmt.Println("For loop:", rv.Kind(), rv.Type(), rv)
 		sessKind = rv.Kind()
 		sessType = rv.Type()
 
@@ -39,10 +40,10 @@ func TestSession_InitSession(t *testing.T) {
 	}
 
 	if sessKind != reflect.ValueOf(sm).Kind() {
-		t.Error("wrong kind returned testing cookie session. Expecteed", reflect.ValueOf(sm).Kind(), "and got", sessKind)
+		t.Error("wrong kind returned testing cookie session. Expected", reflect.ValueOf(sm).Kind(), "and got", sessKind)
 	}
 
 	if sessType != reflect.ValueOf(sm).Type() {
-		t.Error("wrong type returned testing cookie session. Expecteed", reflect.ValueOf(sm).Type(), "and got", sessType)
+		t.Error("wrong type returned testing cookie session. Expected", reflect.ValueOf(sm).Type(), "and got", sessType)
 	}
 }

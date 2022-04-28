@@ -28,9 +28,8 @@ var mailer = Mail{
 func TestMain(m *testing.M) {
 	p, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("could not connect to docker", err)
 	}
-
 	pool = p
 
 	opts := dockertest.RunOptions{
@@ -52,10 +51,9 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Println(err)
 		_ = pool.Purge(resource)
-		log.Fatal("could not start resource")
+		log.Fatal("Could not start resource")
 	}
 
-	// wait for mailhog to start
 	time.Sleep(2 * time.Second)
 
 	go mailer.ListenForMail()

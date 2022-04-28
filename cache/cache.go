@@ -34,7 +34,7 @@ func (c *RedisCache) Has(str string) (bool, error) {
 		return false, err
 	}
 
-	return ok, err
+	return ok, nil
 }
 
 func encode(item Entry) ([]byte, error) {

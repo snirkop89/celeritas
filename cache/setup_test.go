@@ -38,13 +38,12 @@ func TestMain(m *testing.M) {
 	_ = os.RemoveAll("./testdata/tmp/badger")
 
 	// create a badger database
-	if _, err := os.Stat("./testdata/tmp/"); os.IsNotExist(err) {
+	if _, err := os.Stat("./testdata/tmp"); os.IsNotExist(err) {
 		err := os.Mkdir("./testdata/tmp", 0755)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-
 	err = os.Mkdir("./testdata/tmp/badger", 0755)
 	if err != nil {
 		log.Fatal(err)

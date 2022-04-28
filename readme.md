@@ -1,3 +1,1 @@
-# Celeritas application
-
-# mini Laravel clone
+# Celeritas

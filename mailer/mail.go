@@ -3,9 +3,9 @@ package mailer
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"path/filepath"
-	"text/template"
 	"time"
 
 	apimail "github.com/ainsleyclark/go-mail"
@@ -13,6 +13,7 @@ import (
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
+// Mail holds the information necessary to connect to an SMTP server
 type Mail struct {
 	Domain      string
 	Templates   string
@@ -20,7 +21,7 @@ type Mail struct {
 	Port        int
 	Username    string
 	Password    string
-	Encryption  string // SSL/TLS
+	Encryption  string
 	FromAddress string
 	FromName    string
 	Jobs        chan Message
@@ -30,6 +31,7 @@ type Mail struct {
 	APIUrl      string
 }
 
+// Message is the type for an email message
 type Message struct {
 	From        string
 	FromName    string
@@ -40,11 +42,17 @@ type Message struct {
 	Data        interface{}
 }
 
+// Result contains information regarding the status of the sent email message
 type Result struct {
 	Success bool
 	Error   error
 }
 
+// ListenForMail listens to the mail channel and sends mail
+// when it receives a payload. It runs continually in the background,
+// and sends error/success messages back on the Results channel.
+// Note that if api and api key are set, it will prefer using
+// an api to send mail
 func (m *Mail) ListenForMail() {
 	for {
 		msg := <-m.Jobs
@@ -57,14 +65,16 @@ func (m *Mail) ListenForMail() {
 	}
 }
 
+// Send sends an email message using correct method. If API values are set,
+// it will send using the appropriate api; otherwise, it sends via smtp
 func (m *Mail) Send(msg Message) error {
-	// TODO: are we using an API or SMTP?
 	if len(m.API) > 0 && len(m.APIKey) > 0 && len(m.APIUrl) > 0 && m.API != "smtp" {
 		return m.ChooseAPI(msg)
 	}
 	return m.SendSMTPMessage(msg)
 }
 
+// ChooseAPI chooses api to use (specified in .env)
 func (m *Mail) ChooseAPI(msg Message) error {
 	switch m.API {
 	case "mailgun", "sparkpost", "sendgrid":
@@ -74,6 +84,8 @@ func (m *Mail) ChooseAPI(msg Message) error {
 	}
 }
 
+// SendUsingAPI sends a message using the appropriate API. It can be called directly, if necessary.
+// transport can be one of sparkpost, sendgrid, or mailgun
 func (m *Mail) SendUsingAPI(msg Message, transport string) error {
 	if msg.From == "" {
 		msg.From = m.FromAddress
@@ -126,6 +138,7 @@ func (m *Mail) SendUsingAPI(msg Message, transport string) error {
 	return nil
 }
 
+// addAPIAttachments adds attachments, if any, to mail being sent via api
 func (m *Mail) addAPIAttachments(msg Message, tx *apimail.Transmission) error {
 	if len(msg.Attachments) > 0 {
 		var attachments []apimail.Attachment
@@ -145,9 +158,12 @@ func (m *Mail) addAPIAttachments(msg Message, tx *apimail.Transmission) error {
 
 		tx.Attachments = attachments
 	}
+
 	return nil
 }
 
+// SendSMTPMessage builds and sends an email message using SMTP. This is called by ListenForMail,
+// and can also be called directly when necessary
 func (m *Mail) SendSMTPMessage(msg Message) error {
 	formattedMessage, err := m.buildHTMLMessage(msg)
 	if err != nil {
@@ -168,7 +184,7 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 	server.ConnectTimeout = 10 * time.Second
 	server.SendTimeout = 10 * time.Second
 
-	client, err := server.Connect()
+	smtpClient, err := server.Connect()
 	if err != nil {
 		return err
 	}
@@ -183,12 +199,11 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 
 	if len(msg.Attachments) > 0 {
 		for _, x := range msg.Attachments {
-			// full path name to the attachment
 			email.AddAttachment(x)
 		}
 	}
 
-	err = email.Send(client)
+	err = email.Send(smtpClient)
 	if err != nil {
 		return err
 	}
@@ -196,12 +211,13 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 	return nil
 }
 
+// getEncryption returns the appropriate encryption type based on a string value
 func (m *Mail) getEncryption(e string) mail.Encryption {
 	switch e {
 	case "tls":
 		return mail.EncryptionSTARTTLS
 	case "ssl":
-		return mail.EncryptionSSLTLS
+		return mail.EncryptionSSL
 	case "none":
 		return mail.EncryptionNone
 	default:
@@ -209,6 +225,7 @@ func (m *Mail) getEncryption(e string) mail.Encryption {
 	}
 }
 
+// buildHTMLMessage creates the html version of the message
 func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 	templateToRender := fmt.Sprintf("%s/%s.html.tmpl", m.Templates, msg.Template)
 
@@ -218,8 +235,7 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 	}
 
 	var tpl bytes.Buffer
-	err = t.ExecuteTemplate(&tpl, "body", msg.Data)
-	if err != nil {
+	if err = t.ExecuteTemplate(&tpl, "body", msg.Data); err != nil {
 		return "", err
 	}
 
@@ -232,17 +248,17 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 	return formattedMessage, nil
 }
 
+// buildPlainTextMessage creates the plaintext version of the message
 func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
 	templateToRender := fmt.Sprintf("%s/%s.plain.tmpl", m.Templates, msg.Template)
 
-	t, err := template.New("email-plain").ParseFiles(templateToRender)
+	t, err := template.New("email-html").ParseFiles(templateToRender)
 	if err != nil {
 		return "", err
 	}
 
 	var tpl bytes.Buffer
-	err = t.ExecuteTemplate(&tpl, "body", msg.Data)
-	if err != nil {
+	if err = t.ExecuteTemplate(&tpl, "body", msg.Data); err != nil {
 		return "", err
 	}
 
@@ -251,6 +267,7 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
 	return plainMessage, nil
 }
 
+// inlineCSS takes html input as a string, and inlines css where possible
 func (m *Mail) inlineCSS(s string) (string, error) {
 	options := premailer.Options{
 		RemoveClasses:     false,

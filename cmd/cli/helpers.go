@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -27,7 +28,7 @@ func setup(arg1, arg2 string) {
 	}
 }
 
-func getDNS() string {
+func getDSN() string {
 	dbType := cel.DB.DataType
 
 	if dbType == "pgx" {
@@ -54,36 +55,38 @@ func getDNS() string {
 		}
 		return dsn
 	}
-
 	return "mysql://" + cel.BuildDSN()
+}
+
+func checkForDB() {
+	dbType := cel.DB.DataType
+
+	if dbType == "" {
+		exitGracefully(errors.New("no database connetion provided in .env"))
+	}
+
+	if !fileExists(cel.RootPath + "/config/database.yml") {
+		exitGracefully(errors.New("config/database.yml does not exist"))
+	}
 }
 
 func showHelp() {
 	color.Yellow(`Available commands:
-	package middleware
 
-	import "net/http"
+	help                           - show the help commands
+	down                           - put the server into maintenance mode
+	up                             - take the server out of maintenance mode
+	version                        - print application version
+	migrate                        - runs all up migrations that have not been run previously
+	migrate down                   - reverses the most recent migration
+	migrate reset                  - runs all down migrations in reverse order, and then all up migrations
+	make migration <name> <format> - creates two new up and down migrations in the migrations folder; format=sql/fizz (default fizz)
+	make auth                      - creates and runs migrations for authentication tables, and creates models and middleware
+	make handler <name>            - creates a stub handler in the handlers directory
+	make model <name>              - creates a new model in the data directory
+	make session                   - creates a table in the database as a session store
+	make mail <name>               - creates two starter mail templates in the mail directory
 	
-	func (m *Middleware) Auth(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !m.App.Session.Exists(r.Context(), "userID") {
-				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-			}
-		})
-	}
-	
-	help                    - show the help commands
-	version                 - print application version
-	migrate                 - runs all up migrations that have no been run previously
-	migrate down            - reverse the most recent migration
-	migrate reset           - runs all down migrations in reverse order, and then all up migrations
-	make migration <name>   - creates two new up and down migrations in the migrations folder
-	make auth               - creates and runs migrations for authentication tables, and creates models and middleware
-	make handler <name>     - creates a stub handler in the handlers directory
-	make model <name>       - creates a new model in the data directory
-	make session            - creates a table in the database as a session store
-	mail mail <name>        - creates two starter templates in the mail directory
-
 	`)
 }
 
@@ -93,7 +96,7 @@ func updateSourceFiles(path string, fi os.FileInfo, err error) error {
 		return err
 	}
 
-	// check if current file is a directory
+	// check if current file is directory
 	if fi.IsDir() {
 		return nil
 	}
@@ -106,6 +109,7 @@ func updateSourceFiles(path string, fi os.FileInfo, err error) error {
 
 	// we have a matching file
 	if matched {
+		// read file contents
 		read, err := os.ReadFile(path)
 		if err != nil {
 			exitGracefully(err)

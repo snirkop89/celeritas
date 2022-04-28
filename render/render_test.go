@@ -8,7 +8,7 @@ import (
 
 var pageData = []struct {
 	name          string
-	renderer      string // engine
+	renderer      string
 	template      string
 	errorExpected bool
 	errorMessage  string
@@ -21,9 +21,8 @@ var pageData = []struct {
 }
 
 func TestRender_Page(t *testing.T) {
-
 	for _, e := range pageData {
-		r, err := http.NewRequest("GET", "/someurl", nil)
+		r, err := http.NewRequest("GET", "/some-url", nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -48,7 +47,7 @@ func TestRender_Page(t *testing.T) {
 
 func TestRender_GoPage(t *testing.T) {
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "anyurl", nil)
+	r, err := http.NewRequest("GET", "/url", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,16 +63,16 @@ func TestRender_GoPage(t *testing.T) {
 
 func TestRender_JetPage(t *testing.T) {
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "anyurl", nil)
+	r, err := http.NewRequest("GET", "/url", nil)
 	if err != nil {
 		t.Error(err)
 	}
 
 	testRenderer.Renderer = "jet"
-	testRenderer.RootPath = "./testdata"
 
 	err = testRenderer.Page(w, r, "home", nil, nil)
 	if err != nil {
 		t.Error("Error rendering page", err)
 	}
+
 }

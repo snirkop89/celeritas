@@ -17,11 +17,7 @@ func TestBadgerCache_Has(t *testing.T) {
 		t.Error("foo found in cache, and it shouldn't be there")
 	}
 
-	err = testBadgerCache.Set("foo", "bar")
-	if err != nil {
-		t.Error(err)
-	}
-
+	_ = testBadgerCache.Set("foo", "bar")
 	inCache, err = testBadgerCache.Has("foo")
 	if err != nil {
 		t.Error(err)
@@ -32,6 +28,9 @@ func TestBadgerCache_Has(t *testing.T) {
 	}
 
 	err = testBadgerCache.Forget("foo")
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestBadgerCache_Get(t *testing.T) {
@@ -48,11 +47,10 @@ func TestBadgerCache_Get(t *testing.T) {
 	if x != "bar" {
 		t.Error("did not get correct value from cache")
 	}
-
 }
 
 func TestBadgerCache_Forget(t *testing.T) {
-	err := testBadgerCache.Set("foo", "goo")
+	err := testBadgerCache.Set("foo", "foo")
 	if err != nil {
 		t.Error(err)
 	}
@@ -68,48 +66,18 @@ func TestBadgerCache_Forget(t *testing.T) {
 	}
 
 	if inCache {
-		t.Error("foo found but should have been removed")
+		t.Error("foo found in cache, and it shouldn't be there")
 	}
+
 }
 
 func TestBadgerCache_Empty(t *testing.T) {
-	err := testBadgerCache.Set("foo", "goo")
+	err := testBadgerCache.Set("alpha", "beta")
 	if err != nil {
 		t.Error(err)
 	}
 
 	err = testBadgerCache.Empty()
-	if err != nil {
-		t.Error(err)
-	}
-
-	inCache, err := testBadgerCache.Has("foo")
-	if err != nil {
-		t.Error(err)
-	}
-
-	if inCache {
-		t.Error("foo found but should have been removed")
-	}
-}
-
-func TestBadgerCache_EmptyByMatch(t *testing.T) {
-	err := testBadgerCache.Set("alpha", "goo")
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = testBadgerCache.Set("alpha2", "goo")
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = testBadgerCache.Set("beta", "goo")
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = testBadgerCache.EmptyByMatch("alpha")
 	if err != nil {
 		t.Error(err)
 	}
@@ -120,7 +88,38 @@ func TestBadgerCache_EmptyByMatch(t *testing.T) {
 	}
 
 	if inCache {
-		t.Error("alpha found but should have been removed")
+		t.Error("alpha found in cache, and it shouldn't be there")
+	}
+}
+
+func TestBadgerCache_EmptyByMatch(t *testing.T) {
+	err := testBadgerCache.Set("alpha", "beta")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = testBadgerCache.Set("alpha2", "beta2")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = testBadgerCache.Set("beta", "beta")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = testBadgerCache.EmptyByMatch("a")
+	if err != nil {
+		t.Error(err)
+	}
+
+	inCache, err := testBadgerCache.Has("alpha")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if inCache {
+		t.Error("alpha found in cache, and it shouldn't be there")
 	}
 
 	inCache, err = testBadgerCache.Has("alpha2")
@@ -129,7 +128,7 @@ func TestBadgerCache_EmptyByMatch(t *testing.T) {
 	}
 
 	if inCache {
-		t.Error("alpha2 found but should have been removed")
+		t.Error("alpha2 found in cache, and it shouldn't be there")
 	}
 
 	inCache, err = testBadgerCache.Has("beta")
@@ -138,6 +137,6 @@ func TestBadgerCache_EmptyByMatch(t *testing.T) {
 	}
 
 	if !inCache {
-		t.Error("beta should not have been removed")
+		t.Error("beta not found in cache, and it should be there")
 	}
 }

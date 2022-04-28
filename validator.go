@@ -34,7 +34,10 @@ func (v *Validation) AddError(key, message string) {
 
 func (v *Validation) Has(field string, r *http.Request) bool {
 	x := r.Form.Get(field)
-	return x != ""
+	if x == "" {
+		return false
+	}
+	return true
 }
 
 func (v *Validation) Required(r *http.Request, fields ...string) {
@@ -68,7 +71,7 @@ func (v *Validation) IsInt(field, value string) {
 func (v *Validation) IsFloat(field, value string) {
 	_, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		v.AddError(field, "This field must be an floating point number")
+		v.AddError(field, "This field must be a floating point number")
 	}
 }
 

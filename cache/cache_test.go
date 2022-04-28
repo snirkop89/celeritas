@@ -65,7 +65,7 @@ func TestRedisCache_Forget(t *testing.T) {
 	}
 
 	if inCache {
-		t.Error("alpha found in cache and it should not be there")
+		t.Error("alpha found in cache, and it should not be there")
 	}
 }
 
@@ -86,8 +86,9 @@ func TestRedisCache_Empty(t *testing.T) {
 	}
 
 	if inCache {
-		t.Error("alpha found in cache and it should not be there")
+		t.Error("alpha found in cache, and it should not be there")
 	}
+
 }
 
 func TestRedisCache_EmptyByMatch(t *testing.T) {
@@ -117,7 +118,7 @@ func TestRedisCache_EmptyByMatch(t *testing.T) {
 	}
 
 	if inCache {
-		t.Error("alpha found in cache and it should not be there")
+		t.Error("alpha found in cache, and it should not be there")
 	}
 
 	inCache, err = testRedisCache.Has("alpha2")
@@ -126,7 +127,7 @@ func TestRedisCache_EmptyByMatch(t *testing.T) {
 	}
 
 	if inCache {
-		t.Error("alpha found in cache and it should not be there")
+		t.Error("alpha2 found in cache, and it should not be there")
 	}
 
 	inCache, err = testRedisCache.Has("beta")
@@ -135,7 +136,7 @@ func TestRedisCache_EmptyByMatch(t *testing.T) {
 	}
 
 	if !inCache {
-		t.Error("beta not found in cache and it should be there")
+		t.Error("beta not found in cache, and it should be there")
 	}
 }
 
@@ -151,4 +152,5 @@ func TestEncodeDecode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
 }

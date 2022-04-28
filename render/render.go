@@ -20,7 +20,7 @@ type Render struct {
 	Port       string
 	ServerName string
 	JetViews   *jet.Set
-	Session    scs.SessionManager
+	Session    *scs.SessionManager
 }
 
 type TemplateData struct {
@@ -47,7 +47,6 @@ func (c *Render) defaultData(td *TemplateData, r *http.Request) *TemplateData {
 	}
 	td.Error = c.Session.PopString(r.Context(), "error")
 	td.Flash = c.Session.PopString(r.Context(), "flash")
-
 	return td
 }
 

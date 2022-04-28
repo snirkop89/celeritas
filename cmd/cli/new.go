@@ -22,7 +22,7 @@ func doNew(appName string) {
 	// sanitize the application name (convert url to single word)
 	if strings.Contains(appName, "/") {
 		exploded := strings.SplitAfter(appName, "/")
-		appName = exploded[len(exploded)-1]
+		appName = exploded[(len(exploded) - 1)]
 	}
 
 	log.Println("App name is", appName)
@@ -34,7 +34,6 @@ func doNew(appName string) {
 		Progress: os.Stdout,
 		Depth:    1,
 	})
-
 	if err != nil {
 		exitGracefully(err)
 	}
@@ -68,13 +67,13 @@ func doNew(appName string) {
 		}
 		defer source.Close()
 
-		dest, err := os.Create(fmt.Sprintf("./%sMakefile", appName))
+		destination, err := os.Create(fmt.Sprintf("./%s/Makefile", appName))
 		if err != nil {
 			exitGracefully(err)
 		}
-		defer dest.Close()
+		defer destination.Close()
 
-		_, err = io.Copy(dest, source)
+		_, err = io.Copy(destination, source)
 		if err != nil {
 			exitGracefully(err)
 		}
@@ -85,13 +84,13 @@ func doNew(appName string) {
 		}
 		defer source.Close()
 
-		dest, err := os.Create(fmt.Sprintf("./%sMakefile", appName))
+		destination, err := os.Create(fmt.Sprintf("./%s/Makefile", appName))
 		if err != nil {
 			exitGracefully(err)
 		}
-		defer dest.Close()
+		defer destination.Close()
 
-		_, err = io.Copy(dest, source)
+		_, err = io.Copy(destination, source)
 		if err != nil {
 			exitGracefully(err)
 		}
@@ -116,7 +115,7 @@ func doNew(appName string) {
 		exitGracefully(err)
 	}
 
-	// update the existing .go file with correct name/imports
+	// update existing .go files with correct name/imports
 	color.Yellow("\tUpdating source files...")
 	os.Chdir("./" + appName)
 	updateSource()
@@ -124,10 +123,11 @@ func doNew(appName string) {
 	// run go mod tidy in the project directory
 	color.Yellow("\tRunning go mod tidy...")
 	cmd := exec.Command("go", "mod", "tidy")
-	err = cmd.Run()
+	err = cmd.Start()
 	if err != nil {
 		exitGracefully(err)
 	}
+
 	color.Green("Done building " + appURL)
-	color.Green("Go build something amazing!")
+	color.Green("Go build something awesome")
 }

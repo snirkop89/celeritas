@@ -31,7 +31,11 @@ func (s *Signer) GenerateTokenFromString(data string) string {
 func (s *Signer) VerifyToken(token string) bool {
 	crypt := goalone.New(s.Secret, goalone.Timestamp)
 	_, err := crypt.Unsign([]byte(token))
-	return err == nil
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func (s *Signer) Expired(token string, minutesUntilExpire int) bool {

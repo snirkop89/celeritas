@@ -28,7 +28,7 @@ func (b *BadgerCache) Get(str string) (interface{}, error) {
 		}
 
 		err = item.Value(func(val []byte) error {
-			fromCache = append(fromCache, val...)
+			fromCache = append([]byte{}, val...)
 			return nil
 		})
 		if err != nil {
@@ -127,7 +127,6 @@ func (b *BadgerCache) emptyByMatch(str string) error {
 					return err
 				}
 			}
-
 		}
 
 		if keysCollected > 0 {
@@ -135,7 +134,9 @@ func (b *BadgerCache) emptyByMatch(str string) error {
 				return err
 			}
 		}
+
 		return nil
 	})
+
 	return err
 }
